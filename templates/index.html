@@ -1,54 +1,141 @@
-<!DOCTYPE html>
-<html>
-  <head>
+<!doctype html>
+<html lang="en">
+<head>
     <meta charset="utf-8" />
-    <title>LLM Q&A</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ask the LLM — Q&A Interface</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        max-width: 800px;
-        margin: 40px auto;
-      }
-      textarea {
-        width: 100%;
-        height: 120px;
-      }
-      pre {
-        background: #f4f4f4;
-        padding: 12px;
-      }
-      button {
-        padding: 8px 16px;
-      }
+        :root {
+            --bg: #f6f8fb;
+            --card: #fff;
+            --accent: #2563eb;
+            --success: #16a34a;
+            --danger: #dc2626;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: var(--bg);
+            color: #0f172a;
+        }
+
+        .wrap {
+            max-width: 840px;
+            margin: 40px auto;
+            padding: 28px;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(2,6,23,0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent);
+            margin: 0 0 18px;
+            font-size: 1.6rem;
+        }
+
+        form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        label {
+            width: 100%;
+            font-weight: 600
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 220px;
+            padding: 12px 14px;
+            border: 1px solid #e6eef8;
+            border-radius: 8px;
+            font-size: 1rem
+        }
+
+            input[type="text"]:focus {
+                outline: 2px solid rgba(37,99,235,0.12)
+            }
+
+        button {
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            background: var(--success);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .panel {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            background: #fbfdff;
+            border: 1px solid #e8f2ff
+        }
+
+            .panel h3 {
+                margin: 0 0 8px;
+                color: var(--accent);
+                font-size: 1rem
+            }
+
+        pre {
+            white-space: pre-wrap;
+            font-family: ui-monospace, SFMono-Regular, Monaco, "Lucida Console", monospace;
+            background: transparent;
+            border: none;
+            margin: 0
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 12px
+        }
+
+            .alert.error {
+                background: #fff1f2;
+                color: var(--danger);
+                border: 1px solid #ffd7d9
+            }
     </style>
-  </head>
-  <body>
-    <h1>LLM Q&A</h1>
-    <form id="qaForm" onsubmit="return false;">
-      <label for="q">Question</label><br />
-      <textarea id="q"></textarea><br />
-      <button id="askBtn">Ask LLM</button>
-    </form>
+</head>
+<body>
+    <div class="wrap">
+        <h1>LLM Q&A Interface</h1>
+        <form method="post">
+            <label for="question">Type a question for the model</label>
+            <input id="question" name="question" type="text" placeholder="E.g. What is gradient descent?" value="{{ question or '' }}" required />
+            <button type="submit">Ask</button>
+        </form>
 
-    <h3>Processed question</h3>
-    <pre id="processed">-</pre>
-    <h3>Answer</h3>
-    <pre id="answer">-</pre>
+        {% if error %}
+        <div class="alert error">⚠️ {{ error }}</div>
+        {% endif %}
 
-    <script>
-      document
-        .getElementById("askBtn")
-        .addEventListener("click", async function () {
-          const q = document.getElementById("q").value;
-          const res = await fetch("/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ question: q }),
-          });
-          const data = await res.json();
-          document.getElementById("processed").innerText = data.processed;
-          document.getElementById("answer").innerText = data.answer;
-        });
-    </script>
-  </body>
+        {% if llm_response %}
+        <div class="panel">
+            <h3>Original submission</h3>
+            <pre>{{ question }}</pre>
+        </div>
+
+        <div class="panel">
+            <h3>Normalized input</h3>
+            <pre>{{ processed_question }}</pre>
+        </div>
+
+        <div class="panel" style="border:1px solid #d1fae5; background:#f0fff4">
+            <h3 style="color:var(--success)">Model reply</h3>
+            <pre>{{ llm_response }}</pre>
+        </div>
+        {% endif %}
+    </div>
+</body>
 </html>
